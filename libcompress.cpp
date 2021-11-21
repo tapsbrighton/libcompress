@@ -1,4 +1,4 @@
-#include "libcompress.h"
+#include "include/libcompress.h"
 
 #include <iostream>
 #include <QString>
@@ -11,63 +11,62 @@
 
 #include "include/libcompress.h"
 
-QStringList allScripts = {};
-Utility *u = new Utility(false);
-
-void clearListForAllScripts() {
+Compress::Compress() {
     allScripts.clear();
-    qDebug() << "libcompress: Cleared list for all scripts";
+    u = new Utility(false);
 }
 
-void removeAllCreatedBashScripts()
-{
-    foreach(const QString& script, allScripts){
+
+void Compress::clearListForAllScripts() {
+    allScripts.clear();
+    qInfo() << "libcompress: Cleared list for all scripts";
+}
+
+void Compress::removeAllCreatedBashScripts() {
+            foreach(const QString &script, allScripts) {
             bool result = u->removeFile(script);
 
-            if (!result){
-                qDebug()<<"libcompress: Could not remove file: "<<script;
+            if (!result) {
+                qWarning() << "libcompress: Could not remove file: " << script;
             }
-    }
+        }
 
     clearListForAllScripts();
 }
 
-QString makeTheLegendBashFile(const QStringList& otherBashScripts)
-{
-    QStringList commands={};
+QString Compress::makeTheLegendBashFile(const QStringList &otherBashScripts) {
+    QStringList commands = {};
 
-    const QString& shebang="#!/bin/bash";
+    const QString &shebang = "#!/bin/bash";
     commands.append(shebang);
 
     commands.append("\n");
 
-    QString for_item_string="for script in ";
+    QString for_item_string = "for script in ";
 
-            foreach(QString script, otherBashScripts){
+            foreach(QString script, otherBashScripts) {
             QString msg = R"("%1")";
             const QString &scriptBasename = u->getBasename(script);
-            msg=msg.arg(scriptBasename);
-            for_item_string+=msg;
-            for_item_string+=" ";
+            msg = msg.arg(scriptBasename);
+            for_item_string += msg;
+            for_item_string += " ";
         }
-    for_item_string=for_item_string.trimmed();
-    for_item_string=for_item_string+=";";
-    qDebug()<<"For item in string: "<<for_item_string;
+    for_item_string = for_item_string.trimmed();
+    for_item_string = for_item_string += ";";
+    qDebug() << "For item in string: " << for_item_string;
 
     commands.append(for_item_string);
 
-    QString do_string="\tdo";
+    QString do_string = "\tdo";
     commands.append(do_string);
 
-//    const QString& action_string=R"\t\t"/bin/bash" "$script")";
-//    const QString& action_string="\t\t\"/bin/bash\" \"$script\"";
     const QString &action_string = R"(        "/bin/bash" "$script")";
     commands.append(action_string);
 
     const QString done_string = "\tdone";
     commands.append(done_string);
 
-    qDebug() << "libmyutility: " << "Got commands as: " << commands;
+    qInfo() << "libcompress: " << "Got commands as: " << commands;
 
     const QString &legendBashFile = "legend.sh";
     u->makeFile(legendBashFile);
@@ -75,29 +74,23 @@ QString makeTheLegendBashFile(const QStringList& otherBashScripts)
 
     u->writeListToFile(commands, legendBashFile);
 
-//    QFile::copy(legendBashFile, "/home/taps/Music/"+legendBashFile);
-//    qDebug()<<"Copied legend bash file for debug purposes.";
-
     return legendBashFile;
 
 }
 
-void createListForAllScripts()
-{
+void Compress::createListForAllScripts() {
     allScripts.clear();
 }
 
-void addItemToListForAllScripts(const QString& item)
-{
+void Compress::addItemToListForAllScripts(const QString &item) {
     allScripts.append(item);
 }
 
-QStringList getContentToWriteInIndividualBashScript(const QString& dirname, const QString& passwd)
-{
-    QStringList list={};
+QStringList Compress::getContentToWriteInIndividualBashScript(const QString &dirname, const QString &passwd) {
+    QStringList list = {};
 
     // append first item
-    const QString& shebang="#!/bin/bash";
+    const QString &shebang = "#!/bin/bash";
     list.append(shebang);
     list.append("\n"); // newline
 
@@ -105,29 +98,8 @@ QStringList getContentToWriteInIndividualBashScript(const QString& dirname, cons
     const QString namedWithExt = u->getNameWithExtensionAddedToEnd(dirname, "zip");
     QString command = R"("%1" -m -v -y -r -e -P "%2" "%3" "%4")";
 
-    QString ps;
-
-    if (QString::compare(passwd, "savage", Qt::CaseInsensitive)==0){
-        ps="savage";
-
-    }else if (QString::compare(passwd, "Arch-Manic-Reborn", Qt::CaseInsensitive)==0){
-        ps="Arch-Manic-Reborn";
-
-    }else if (QString::compare(passwd, "unleash-carnage", Qt::CaseInsensitive)==0){
-        ps="unleash-carnage";
-
-    }else if (QString::compare(passwd, "", Qt::CaseInsensitive)==0){
-        qDebug()<<"Should compress without any password";
-        ps="";
-
-    }else{
-        qDebug()<<"Got password: "<<passwd<<" which was not matched by any of my if-else statements";
-        qDebug()<<"Because of that I will not use any password";
-        ps="";
-    }
-
-    command = command.arg(zip, ps, u->getBasename(namedWithExt), u->getBasename(dirname));
-    qDebug()<<"Using command: "<<command;
+    command = command.arg(zip, passwd, u->getBasename(namedWithExt), u->getBasename(dirname));
+    qInfo() << "Using command: " << command;
 
     list.append(command);
 
@@ -135,7 +107,7 @@ QStringList getContentToWriteInIndividualBashScript(const QString& dirname, cons
 }
 
 
-QString createBashScript(const QString &dir, const QString& passwd) {
+QString Compress::createBashScript(const QString &dir, const QString &passwd) {
     QString name = "%1.sh";
     name = name.arg(dir);
 
@@ -148,7 +120,7 @@ QString createBashScript(const QString &dir, const QString& passwd) {
     return name;
 }
 
-void moveFiles(const QList<QStringList> &list) {
+void Compress::moveFiles(const QList<QStringList> &list) {
             foreach(const QStringList &lst, list) {
             const QString &old_name = lst.first();
             const QString &new_name = lst.at(1);
@@ -164,7 +136,7 @@ void moveFiles(const QList<QStringList> &list) {
 
 }
 
-void moveAllFilesIntoDirs(const QString &folder) {
+void Compress::moveAllFilesIntoDirs(const QString &folder) {
     /*
      * Move single files (that are not in any dir) to a folder so that
      * everything can be compressed
@@ -220,29 +192,30 @@ void moveAllFilesIntoDirs(const QString &folder) {
     moveFiles(mainList);
 }
 
-QString startProcess(const QString &dirname, const QString &passwdCategory) {
+QString Compress::startProcess(const QString &dirname, const QString &passwdCategory) {
     std::string pwd_std = dirname.toStdString();
     const char *pwd_const_char = pwd_std.c_str();
     chdir(pwd_const_char);
-    qDebug() << "libcompress: Changed current working directory to: " << dirname;
+    qInfo() << "libcompress: Changed current working directory to: " << dirname;
 
     moveAllFilesIntoDirs(dirname);
 
     QStringList bashScripts = {};
     QStringList dirs = u->getAllDirsInDir_StringList_v2(dirname);
-    qDebug() << "libcompress: Got dirs in dir: " << dirs;
+
+    qInfo() << "libcompress: Got dirs in dir: " << dirs;
 
             foreach(QString file, dirs) {
             QFileInfo fileInfo(file);
             const QString &bashScript = createBashScript(fileInfo.fileName(), passwdCategory);
             bashScripts.append(bashScript);
             allScripts.append(bashScript);
-        qDebug()<<"Got bash script: "<<bashScript;
-    }
+
+            qInfo() << "Got bash script: " << bashScript;
+        }
 
 
-//    const QString pwd= getParentDir(bash);
-    const QString& legendBashFile= makeTheLegendBashFile(bashScripts);
+    const QString &legendBashFile = makeTheLegendBashFile(bashScripts);
     allScripts.append(legendBashFile);
 //    const QString& pwd=dirname;
 

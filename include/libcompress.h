@@ -2,27 +2,38 @@
 #define LIBCOMPRESS_LIBCOMPRESS_H
 
 #include <QString>
-
+#include <utility.h>
 #include "libcompress_global.h"
 
-void moveFiles(const QList<QStringList> &list);
+class COMPRESS_LIBRARY_EXPORT Compress {
 
-void moveAllFilesIntoDirs(const QString &folder);
+public:
+    Compress();
 
-void removeAllCreatedBashScripts();
+    void moveFiles(const QList<QStringList> &list);
 
-QString makeTheLegendBashFile(const QStringList &otherBashScripts);
+    void moveAllFilesIntoDirs(const QString &folder);
 
-QStringList getContentToWriteInIndividualBashScript(const QString &dirname, const QString &passwd);
+    void removeAllCreatedBashScripts();
 
-void addItemToListForAllScripts(const QString &item);
+    QString makeTheLegendBashFile(const QStringList &otherBashScripts);
 
-void createListForAllScripts();
+    QStringList getContentToWriteInIndividualBashScript(const QString &dirname, const QString &passwd);
 
-void clearListForAllScripts();
+    void addItemToListForAllScripts(const QString &item);
 
-QString startProcess(const QString &dirname, const QString &passwdCategory);
+    void createListForAllScripts();
 
-QString createBashScript(const QString &dir, const QString &passwd);
+    void clearListForAllScripts();
+
+    QString startProcess(const QString &dirname, const QString &passwdCategory);
+
+    QString createBashScript(const QString &dir, const QString &passwd);
+
+private:
+    Utility *u;
+    QStringList allScripts = {};
+};
+
 
 #endif //LIBCOMPRESS_LIBCOMPRESS_H
