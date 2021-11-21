@@ -31,6 +31,26 @@ void Compress::removeAllCreatedBashScripts() {
             }
         }
 
+}
+
+void Compress::checkIfFilesWereDeleted() {
+            foreach(const QString &_script, allScripts) {
+            QFile _file(_script);
+
+            if (_file.exists()) {
+                qInfo() << "File: " << _file.fileName() << " still exists";
+
+                // remove it
+                bool res = _file.remove();
+
+                if (!res) qWarning() << "Could not remove file: " << _file;
+                else
+                    qInfo() << "libcompress: " << "File " << _file.fileName() << " removed";
+            } else {
+                // file was successfully deleted the first time
+            }
+        }
+
     clearListForAllScripts();
 }
 
@@ -96,9 +116,22 @@ QStringList Compress::getContentToWriteInIndividualBashScript(const QString &dir
 
     const QString &zip = "/usr/bin/zip";
     const QString namedWithExt = u->getNameWithExtensionAddedToEnd(dirname, "zip");
-    QString command = R"("%1" -m -v -y -r -e -P "%2" "%3" "%4")";
 
-    command = command.arg(zip, passwd, u->getBasename(namedWithExt), u->getBasename(dirname));
+    QString command;
+
+    if (passwd.isEmpty()) {
+        // don't use any password.
+        // just zip the files
+
+        command = R"("%1" -m -v -y -r "%2" "%3")";
+        command = command.arg(zip, u->getBasename(namedWithExt), u->getBasename(dirname));
+
+    } else {
+        command = R"("%1" -m -v -y -r -e -P "%2" "%3" "%4")";
+        command = command.arg(zip, passwd, u->getBasename(namedWithExt), u->getBasename(dirname));
+
+    }
+
     qInfo() << "Using command: " << command;
 
     list.append(command);
@@ -209,7 +242,9 @@ QString Compress::startProcess(const QString &dirname, const QString &passwdCate
             QFileInfo fileInfo(file);
             const QString &bashScript = createBashScript(fileInfo.fileName(), passwdCategory);
             bashScripts.append(bashScript);
-            allScripts.append(bashScript);
+
+            QFileInfo fileInfo1(bashScript);
+            allScripts.append(fileInfo1.absoluteFilePath()); // use absolute path
 
             qInfo() << "Got bash script: " << bashScript;
         }

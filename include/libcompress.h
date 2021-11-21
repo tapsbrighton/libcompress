@@ -10,6 +10,8 @@ class COMPRESS_LIBRARY_EXPORT Compress {
 public:
     Compress();
 
+    void checkIfFilesWereDeleted();
+
     void moveFiles(const QList<QStringList> &list);
 
     void moveAllFilesIntoDirs(const QString &folder);
