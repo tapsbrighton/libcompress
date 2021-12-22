@@ -3,23 +3,24 @@ project(libcompress VERSION 1.3)
 
 set(CMAKE_CXX_STANDARD 14)
 
-set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(QT_VERSION 6)
+set(REQUIRED_LIBS Core Gui Widgets)
+set(REQUIRED_LIBS_QUALIFIED Qt6::Core Qt6::Gui Qt6::Widgets)
 
-add_library(libcompress STATIC libcompress.cpp include/libcompress.h include/libcompress_global.h)
 
-target_compile_definitions(libcompress PRIVATE COMPRESS_LIBRARY)
+add_library(compress SHARED libcompress.cpp include/libcompress.h include/libcompress_global.h)
+
+target_compile_definitions(compress PRIVATE COMPRESS_LIBRARY)
 
 
 set(PROJECT_SOURCES
         libcompress.cpp
         include/libcompress.h
         include/libcompress_global.h
-        res.qrc
 
         )
 
@@ -31,8 +32,8 @@ write_basic_package_version_file(
         COMPATIBILITY AnyNewerVersion
 )
 
-install(TARGETS libcompress
-        EXPORT libcompress
+install(TARGETS compress
+        EXPORT compress
         LIBRARY DESTINATION lib COMPONENT Runtime
         ARCHIVE DESTINATION lib COMPONENT Development
         RUNTIME DESTINATION bin COMPONENT Runtime
@@ -47,18 +48,11 @@ configure_package_config_file(
         INSTALL_DESTINATION lib/cmake/libcompress
 )
 
-install(EXPORT libcompress DESTINATION lib/cmake/libcompress)
+install(EXPORT compress DESTINATION lib/cmake/libcompress)
 install(FILES "${PROJECT_BINARY_DIR}/libcompress-1.3.cmake"
         "${PROJECT_BINARY_DIR}/libcompressConfig.cmake"
         DESTINATION lib/cmake/libcompress)
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION include)
 
-find_package(Qt5 COMPONENTS
-        Core
-        Widgets
-        REQUIRED)
-
-target_link_libraries(libcompress
-        Qt5::Core
-        Qt5::Widgets
-        )
+find_package(Qt${QT_VERSION} COMPONENTS ${REQUIRED_LIBS} REQUIRED)
+target_link_libraries(compress ${REQUIRED_LIBS_QUALIFIED})

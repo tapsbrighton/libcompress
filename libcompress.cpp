@@ -7,13 +7,25 @@
 #include <unistd.h>
 #include <QDir>
 #include <QDirIterator>
-#include <utility.h>
 
-#include "include/libcompress.h"
-
-Compress::Compress() {
+[[maybe_unused]] Compress::Compress(QWidget *parent) {
     allScripts.clear();
     u = new Utility(false);
+    parentWidget = parent;
+
+    aboutLib = "Using compiled version: Version 1.0.1 (Revision 1)"
+               "\n"
+               "libcompress is a static library with access to a ton of functionality that may be required by many\n"
+               "different projects that implement zipping files and folders, but yet are exactly or almost the same.\n"
+               "This library provides easy quick-access to such functions.\n\n"
+               "This program is free software; you can redistribute it and/or modify it under the \n"
+               "terms of the GNU General Public License as published by the Free Software Foundation; \neither version 2 of the "
+               "License, or (at your option) any later version.\n\n"
+               "New Features: \n"
+               "1. Made the functions so that they the next one right after one function is done.\n"
+               "2. Added functionality to use the library as a class. \n\n"
+               "Author @taps (Manic Software)\n\n"
+               "Contact: 0785313273 or 0719069218";
 }
 
 
@@ -22,9 +34,9 @@ void Compress::clearListForAllScripts() {
     qInfo() << "libcompress: Cleared list for all scripts";
 }
 
-void Compress::removeAllCreatedBashScripts() {
+[[maybe_unused]] void Compress::removeAllCreatedBashScripts() {
             foreach(const QString &script, allScripts) {
-            bool result = u->removeFile(script);
+            bool result = Utility::removeFile(script);
 
             if (!result) {
                 qWarning() << "libcompress: Could not remove file: " << script;
@@ -33,7 +45,7 @@ void Compress::removeAllCreatedBashScripts() {
 
 }
 
-void Compress::checkIfFilesWereDeleted() {
+[[maybe_unused]] void Compress::checkIfFilesWereDeleted() {
             foreach(const QString &_script, allScripts) {
             QFile _file(_script);
 
@@ -43,7 +55,7 @@ void Compress::checkIfFilesWereDeleted() {
                 // remove it
                 bool res = _file.remove();
 
-                if (!res) qWarning() << "Could not remove file: " << _file;
+                if (!res) qWarning() << "Could not remove file: " << _file.fileName();
                 else
                     qInfo() << "libcompress: " << "File " << _file.fileName() << " removed";
             } else {
@@ -66,7 +78,7 @@ QString Compress::makeTheLegendBashFile(const QStringList &otherBashScripts) {
 
             foreach(QString script, otherBashScripts) {
             QString msg = R"("%1")";
-            const QString &scriptBasename = u->getBasename(script);
+            const QString &scriptBasename = Utility::getBasename(script);
             msg = msg.arg(scriptBasename);
             for_item_string += msg;
             for_item_string += " ";
@@ -90,7 +102,7 @@ QString Compress::makeTheLegendBashFile(const QStringList &otherBashScripts) {
 
     const QString &legendBashFile = "legend.sh";
     u->makeFile(legendBashFile);
-    u->makeFileExecutable(legendBashFile);
+    Utility::makeFileExecutable(legendBashFile);
 
     u->writeListToFile(commands, legendBashFile);
 
@@ -98,11 +110,11 @@ QString Compress::makeTheLegendBashFile(const QStringList &otherBashScripts) {
 
 }
 
-void Compress::createListForAllScripts() {
+__attribute__((unused)) void Compress::createListForAllScripts() {
     allScripts.clear();
 }
 
-void Compress::addItemToListForAllScripts(const QString &item) {
+__attribute__((unused)) void Compress::addItemToListForAllScripts(const QString &item) {
     allScripts.append(item);
 }
 
@@ -115,7 +127,7 @@ QStringList Compress::getContentToWriteInIndividualBashScript(const QString &dir
     list.append("\n"); // newline
 
     const QString &zip = "/usr/bin/zip";
-    const QString namedWithExt = u->getNameWithExtensionAddedToEnd(dirname, "zip");
+    const QString namedWithExt = Utility::getNameWithExtensionAddedToEnd(dirname, "zip");
 
     QString command;
 
@@ -124,11 +136,11 @@ QStringList Compress::getContentToWriteInIndividualBashScript(const QString &dir
         // just zip the files
 
         command = R"("%1" -m -v -y -r "%2" "%3")";
-        command = command.arg(zip, u->getBasename(namedWithExt), u->getBasename(dirname));
+        command = command.arg(zip, Utility::getBasename(namedWithExt), Utility::getBasename(dirname));
 
     } else {
         command = R"("%1" -m -v -y -r -e -P "%2" "%3" "%4")";
-        command = command.arg(zip, passwd, u->getBasename(namedWithExt), u->getBasename(dirname));
+        command = command.arg(zip, passwd, Utility::getBasename(namedWithExt), Utility::getBasename(dirname));
 
     }
 
@@ -145,7 +157,7 @@ QString Compress::createBashScript(const QString &dir, const QString &passwd) {
     name = name.arg(dir);
 
     u->makeFile(name, "", true);
-    u->makeFileExecutable(name);
+    Utility::makeFileExecutable(name);
 
     QStringList commands = getContentToWriteInIndividualBashScript(dir, passwd);
     u->writeListToFile(commands, name); // Write commands to bash script
@@ -173,6 +185,11 @@ void Compress::moveAllFilesIntoDirs(const QString &folder) {
     /*
      * Move single files (that are not in any dir) to a folder so that
      * everything can be compressed
+     *
+     * Create a list of lists like [[oldName, newName]]
+     * Then loop through this list and rename old file name to new file name
+     * Then after renaming files, everything is now in folders
+     * Start compressingc
      */
 
     QDir dir(folder);
@@ -196,10 +213,36 @@ void Compress::moveAllFilesIntoDirs(const QString &folder) {
                 const QString &new_dir_name = fileInfo.path() + "/" + base;
 
                 const QString &suffix = fileInfo.suffix();
+
                 if (!suffix.isEmpty()) {
-                    u->createDir(new_dir_name);
+                    // file has a file extension
+
+                    // check if file has a .sh extension
+
+                    if (Utility::stringsEqual(suffix, "sh")) {
+                        // file is a shell script
+                        // prompt user if they want to move it to a folder
+
+                        const QString &_text = "File: " + fileInfo.fileName() + " is a shell script."
+                                                                                "Are you sure you want to"
+                                                                                "move it into a folder and c"
+                                                                                "ompress the folder?";
+                        QMessageBox::StandardButton ans = Utility::showQuestionYesOrNo(parentWidget,
+                                                                                       "Confirmation",
+                                                                                       _text);
+
+                        if (ans == QMessageBox::Yes) {
+                            u->createDir(new_dir_name);
+
+                        } else {
+                            qInfo() << "Ignoring shell script: " + fileInfo.fileName() + " for compression";
+                        }
+                    }
+
 
                 } else {
+                    // file has no file extension
+
                     qInfo() << "libcompress: File has no suffix. Now using a different approach to make the folder.";
                     const QString &appData = u->getAppDataLocation();
                     u->createDir(appData);
@@ -210,6 +253,7 @@ void Compress::moveAllFilesIntoDirs(const QString &folder) {
 
                     u->createDir(new_dir_name);
                 }
+
                 qInfo() << "libcompress: Got new dir name as: " << new_dir_name;
                 const QString &newAbsoluteName = new_dir_name + "/" + fileInfo.fileName();
                 qInfo() << "libcompress: Got new file name as: " << newAbsoluteName;
@@ -225,7 +269,7 @@ void Compress::moveAllFilesIntoDirs(const QString &folder) {
     moveFiles(mainList);
 }
 
-QString Compress::startProcess(const QString &dirname, const QString &passwdCategory) {
+__attribute__((unused)) QString Compress::startProcess(const QString &dirname, const QString &passwdCategory) {
     std::string pwd_std = dirname.toStdString();
     const char *pwd_const_char = pwd_std.c_str();
     chdir(pwd_const_char);
@@ -255,4 +299,72 @@ QString Compress::startProcess(const QString &dirname, const QString &passwdCate
 //    const QString& pwd=dirname;
 
     return legendBashFile;
+}
+
+[[maybe_unused]] void Compress::showAboutLib_v2(const QString &imagePath, QWidget *parent) {
+    AboutLibraryCompress about(imagePath, aboutLib, "About Libutility", parent);
+    about.show();
+}
+
+// about library now
+
+AboutLibraryCompress::AboutLibraryCompress(const QString &_image_path, const QString &_msg,
+                                           const QString &_window_title,
+                                           QWidget *parent)
+        : QDialog(parent) {
+    imagePath = _image_path;
+    msg = _msg;
+
+    setWindowModality(Qt::NonModal);
+    qInfo() << "libcompress: " << imagePath << " :Image exists: " << QFile::exists(imagePath);
+
+    textLabel = new QLabel;
+    pictureLabel = new QLabel;
+    okButton = new QPushButton("Ok");
+    mainVbox = new QVBoxLayout;
+    hbox = new QHBoxLayout;
+    bottomLayout = new QHBoxLayout;
+    enter = new QShortcut(QKeySequence("Enter"), this);
+    sp1 = new QSpacerItem(32, 100, QSizePolicy::Expanding, QSizePolicy::Expanding);
+    sp2 = new QSpacerItem(32, 100, QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    connect(okButton, &QPushButton::clicked, this, &AboutLibraryCompress::close);
+    connect(enter, &QShortcut::activated, this, &AboutLibraryCompress::close);
+    pictureLabel->setFixedSize(300, 300);
+
+    if (pixmap.load(imagePath)) {
+        pixmap = pixmap.scaled(pictureLabel->size(), Qt::KeepAspectRatio);
+        pictureLabel->setPixmap(pixmap);
+
+        textLabel->setText(msg);
+
+        hbox->addWidget(pictureLabel);
+        hbox->addWidget(textLabel);
+
+        bottomLayout->addSpacerItem(sp1);
+        bottomLayout->addWidget(okButton);
+        bottomLayout->addSpacerItem(sp2);
+
+        mainVbox->addLayout(hbox);
+        mainVbox->addLayout(bottomLayout);
+
+        setLayout(mainVbox);
+        setWindowTitle(_window_title);
+
+        setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+        //        const QSize& currentSize = size();
+        //        qInfo()<<"Current size: "<<currentSize;
+        //        setFixedSize(currentSize);
+
+        showDialog();
+
+    } else {
+        QMessageBox::warning(parent, "Error", "Could not load the image: '" + imagePath + "'");
+        this->close();
+        this->deleteLater();
+    }
+}
+
+void AboutLibraryCompress::showDialog() {
+    exec();
 }
