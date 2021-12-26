@@ -8,24 +8,26 @@
 #include <QDir>
 #include <QDirIterator>
 
-[[maybe_unused]] Compress::Compress(QWidget *parent) {
-    allScripts.clear();
-    u = new Utility(false);
-    parentWidget = parent;
+ Compress::Compress(QWidget *parent) {
+     allScripts.clear();
+     u = new Utility(false);
+     parentWidget = parent;
 
-    aboutLib = "Using compiled version: Version 1.0.1 (Revision 1)"
-               "\n"
-               "libcompress is a static library with access to a ton of functionality that may be required by many\n"
-               "different projects that implement zipping files and folders, but yet are exactly or almost the same.\n"
-               "This library provides easy quick-access to such functions.\n\n"
-               "This program is free software; you can redistribute it and/or modify it under the \n"
-               "terms of the GNU General Public License as published by the Free Software Foundation; \neither version 2 of the "
-               "License, or (at your option) any later version.\n\n"
-               "New Features: \n"
-               "1. Made the functions so that they the next one right after one function is done.\n"
-               "2. Added functionality to use the library as a class. \n\n"
-               "Author @taps (Manic Software)\n\n"
-               "Contact: 0785313273 or 0719069218";
+     aboutLib = "Using compiled version: Version 1.0.1 (Revision 1)"
+                "\n"
+                "libcompress is a static library with access to a ton of functionality that may be required by many\n"
+                "different projects that implement zipping files and folders, but yet are exactly or almost the same.\n"
+                "This library provides easy quick-access to such functions.\n\n"
+                "This program is free software; you can redistribute it and/or modify it under the \n"
+                "terms of the GNU General Public License as published by the Free Software Foundation; \neither version 2 of the "
+                "License, or (at your option) any later version.\n\n"
+                "New Features: \n"
+                "1. Made the functions so that they the next one right after one function is done.\n"
+                "2. Added functionality to use the library as a class. \n\n"
+                "3. Improved the moveFiles() function to fix use cases for when it failed to move some\n"
+                " files into their respective folders by implementing the lower level 'mv' command.\n\n"
+                "Author @taps (Manic Software)\n\n"
+                "Contact: 0785313273 or 0719069218";
 }
 
 
@@ -167,17 +169,25 @@ QString Compress::createBashScript(const QString &dir, const QString &passwd) {
 
 void Compress::moveFiles(const QList<QStringList> &list) {
             foreach(const QStringList &lst, list) {
-            const QString &old_name = lst.first();
-            const QString &new_name = lst.at(1);
+        const QString &old_name = lst.first();
+        const QString &new_name = lst.at(1);
 
-            try {
-                QFile::rename(old_name, new_name);
-                qInfo() << "libcompress: Successfully moved file: " << old_name;
+        QFileInfo fileInfo(new_name);
+        QString dir = fileInfo.dir().absolutePath();
 
-            } catch (int num) {
-                qInfo() << "libcompress: Failed to move file: " << old_name;
-            }
+        qInfo() << "Dir for new name: " << dir;
+
+        QDir _dir(dir);
+
+        bool res = _dir.mkpath(dir);
+
+        if (!res) {
+            Utility::showMessageBoxCritical(parentWidget, "Error", "Failed to "
+                                                                   "create the folder: " + dir);
         }
+
+        u->renameFile(old_name, new_name);
+    }
 
 }
 
@@ -302,7 +312,7 @@ __attribute__((unused)) QString Compress::startProcess(const QString &dirname, c
 }
 
 [[maybe_unused]] void Compress::showAboutLib_v2(const QString &imagePath, QWidget *parent) {
-    AboutLibraryCompress about(imagePath, aboutLib, "About Libutility", parent);
+    AboutLibraryCompress about(imagePath, aboutLib, "About libcompress", parent);
     about.show();
 }
 

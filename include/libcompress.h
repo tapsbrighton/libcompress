@@ -5,6 +5,7 @@
 #include <QPushButton>
 #include <QString>
 #include <QMessageBox>
+
 #include <libutility.h>
 
 class COMPRESS_LIBRARY_EXPORT Compress {
@@ -14,7 +15,7 @@ public:
 
     [[maybe_unused]] void checkIfFilesWereDeleted();
 
-    static void moveFiles(const QList<QStringList> &list);
+    void moveFiles(const QList<QStringList> &list);
 
     void moveAllFilesIntoDirs(const QString &folder);
 
