@@ -11,15 +11,15 @@
 class COMPRESS_LIBRARY_EXPORT Compress {
 
 public:
-    [[maybe_unused]] explicit Compress(QWidget *parent);
+    explicit Compress(QWidget *parent);
 
-    [[maybe_unused]] void checkIfFilesWereDeleted();
+     void checkIfFilesWereDeleted();
 
     void moveFiles(const QList<QStringList> &list);
 
     void moveAllFilesIntoDirs(const QString &folder);
 
-    [[maybe_unused]] void removeAllCreatedBashScripts();
+   void removeAllCreatedBashScripts();
 
     QString makeTheLegendBashFile(const QStringList &otherBashScripts);
 
@@ -35,7 +35,7 @@ public:
 
     QString createBashScript(const QString &dir, const QString &passwd);
 
-    [[maybe_unused]] void showAboutLib_v2(const QString &imagePath, QWidget *parent);
+     void showAboutLib_v2(const QString &imagePath, QWidget *parent);
 
 private:
     Utility *u;

@@ -36,7 +36,7 @@ void Compress::clearListForAllScripts() {
     qInfo() << "libcompress: Cleared list for all scripts";
 }
 
-[[maybe_unused]] void Compress::removeAllCreatedBashScripts() {
+void Compress::removeAllCreatedBashScripts() {
             foreach(const QString &script, allScripts) {
             bool result = Utility::removeFile(script);
 
@@ -47,7 +47,7 @@ void Compress::clearListForAllScripts() {
 
 }
 
-[[maybe_unused]] void Compress::checkIfFilesWereDeleted() {
+ void Compress::checkIfFilesWereDeleted() {
             foreach(const QString &_script, allScripts) {
             QFile _file(_script);
 

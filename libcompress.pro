@@ -12,7 +12,7 @@ TARGET = "compress"
 QT += core widgets
 
 TEMPLATE = lib
-CONFIG += staticlib
+CONFIG += dll
 
 VERSION=1.0.1
 
@@ -80,5 +80,3 @@ unix:!macx: LIBS += -L$$PWD/../../../../mine/libs/ -lutility
 
 INCLUDEPATH += $$PWD/../../../../mine/libs
 DEPENDPATH += $$PWD/../../../../mine/libs
-
-unix:!macx: PRE_TARGETDEPS += $$PWD/../../../../mine/libs/libutility.a
