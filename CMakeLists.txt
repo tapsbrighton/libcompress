@@ -3,26 +3,33 @@ project(libcompress)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
 
 include_directories(/home/mine/headers)
 
-add_library(libcompress SHARED libcompress.cpp include/libcompress.h include/libcompress_global.h)
+add_library(libcompress SHARED libcompress.cpp include/libcompress.h include/libcompress_global.h libcompress_resource_file.qrc)
 
 target_compile_definitions(libcompress PRIVATE COMPRESS_LIBRARY)
 
 find_package(Qt5 COMPONENTS
         Core
+        Sql
         Widgets
         REQUIRED)
 
-add_library(libutility SHARED IMPORTED )
+add_library(libutility SHARED IMPORTED)
 set_target_properties(libutility PROPERTIES IMPORTED_LOCATION "/home/mine/libraries/libutility.so")
+
+add_library(aboutlib SHARED IMPORTED)
+set_target_properties(aboutlib PROPERTIES IMPORTED_LOCATION /home/mine/libraries/libaboutlib.so)
 
 
 target_link_libraries(libcompress
         Qt5::Core
         Qt5::Widgets
+        Qt5::Sql
         libutility
+        aboutlib
         )
 
 include(CMakePackageConfigHelpers)

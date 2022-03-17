@@ -13,6 +13,7 @@ QT += core widgets
 
 TEMPLATE = lib
 CONFIG += dll
+CONFIG += c++17
 
 VERSION=1.0.1
 
@@ -21,7 +22,7 @@ DEFINES += COMPRESS_LIBRARY
 
 
 unix{
-    headersDataFiles.path = "/home/mine/libs"
+    headersDataFiles.path = "/home/mine/headers"
 
 }
 
@@ -65,7 +66,7 @@ INSTALLS += libraryFiles
 # Default rules for deployment.
 # Default rules for deployment.
 unix {
-    target.path = /home/mine/libs
+    target.path = /home/mine/libraries
 }
 win32 {
     target.path = "c:/taps-libs"
@@ -73,10 +74,16 @@ win32 {
 !isEmpty(target.path): INSTALLS += target
 !isEmpty(target.path): INSTALLS += target
 
-#RESOURCES += \
-#    res.qrc
+RESOURCES += \
+    libcompress_resource_file.qrc
 
-unix:!macx: LIBS += -L$$PWD/../../../../mine/libs/ -lutility
 
-INCLUDEPATH += $$PWD/../../../../mine/libs
-DEPENDPATH += $$PWD/../../../../mine/libs
+unix:!macx: LIBS += -L$$PWD/../../../../mine/libraries/ -lutility
+
+INCLUDEPATH += $$PWD/../../../../mine/headers
+DEPENDPATH += $$PWD/../../../../mine/libraries
+
+unix:!macx: LIBS += -L$$PWD/../../../../mine/libraries/ -laboutlib
+
+INCLUDEPATH += $$PWD/../../../../mine/headers
+DEPENDPATH += $$PWD/../../../../mine/headers
